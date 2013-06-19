@@ -166,7 +166,6 @@ size_t lwpb_encoder2_add_field(struct lwpb_encoder2 *encoder,
 {
     size_t len = 0;
     size_t size = 0;
-    int i;
     u64_t key;
     enum wire_type wire_type = 0;
     union wire_value wire_value;
@@ -227,7 +226,7 @@ size_t lwpb_encoder2_add_field(struct lwpb_encoder2 *encoder,
         break;
     case LWPB_BOOL:
         wire_type = WT_VARINT;
-        wire_value.varint = value->bool;
+        wire_value.varint = value->boolean;
         break;
     case LWPB_ENUM:
         wire_type = WT_VARINT;

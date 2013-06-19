@@ -377,7 +377,7 @@ lwpb_err_t lwpb_encoder_add_field(struct lwpb_encoder *encoder,
         break;
     case LWPB_BOOL:
         wire_type = WT_VARINT;
-        wire_value.varint = value->bool;
+        wire_value.varint = value->boolean;
         break;
     case LWPB_ENUM:
         wire_type = WT_VARINT;
@@ -560,10 +560,10 @@ lwpb_err_t lwpb_encoder_add_uint64(struct lwpb_encoder *encoder,
  */
 lwpb_err_t lwpb_encoder_add_bool(struct lwpb_encoder *encoder,
                                  const struct lwpb_field_desc *field_desc,
-                                 lwpb_bool_t bool)
+                                 lwpb_bool_t boolean)
 {
     union lwpb_value value;
-    value.bool = bool;
+    value.boolean = boolean;
     return lwpb_encoder_add_field(encoder, field_desc, &value);
 }
 

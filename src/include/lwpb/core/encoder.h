@@ -84,7 +84,7 @@ lwpb_err_t lwpb_encoder_add_uint64(struct lwpb_encoder *encoder,
 
 lwpb_err_t lwpb_encoder_add_bool(struct lwpb_encoder *encoder,
                                  const struct lwpb_field_desc *field_desc,
-                                 lwpb_bool_t bool);
+                                 lwpb_bool_t boolean);
 
 lwpb_err_t lwpb_encoder_add_enum(struct lwpb_encoder *encoder,
                                  const struct lwpb_field_desc *field_desc,

@@ -66,7 +66,7 @@ string StringifyDefaultValue(const FieldDescriptor& field) {
     case FieldDescriptor::CPPTYPE_FLOAT:
       return ".def.float_ = " + SimpleFtoa(field.default_value_double());
     case FieldDescriptor::CPPTYPE_BOOL:
-      return ".def.bool = " + SimpleItoa(field.default_value_bool() ? 1 : 0);
+      return ".def.boolean = " + SimpleItoa(field.default_value_bool() ? 1 : 0);
     case FieldDescriptor::CPPTYPE_ENUM:
       return ".def.int32 = " + SimpleItoa(field.default_value_enum()->number());
     case FieldDescriptor::CPPTYPE_STRING:

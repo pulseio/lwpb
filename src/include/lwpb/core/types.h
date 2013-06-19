@@ -94,6 +94,7 @@ typedef enum {
 #define LWPB_SFIXED64       16
 #define LWPB_SINT32         17
 #define LWPB_SINT64         18
+#define LWPB_UNKNOWN_FIELD  19
 
 /* Field flags */
 #define LWPB_HAS_DEFAULT    (1 << 0)
@@ -121,7 +122,7 @@ union lwpb_value {
     s64_t int64;
     u32_t uint32;
     u64_t uint64;
-    lwpb_bool_t bool;
+    lwpb_bool_t boolean;
     struct {
         char *str;
         size_t len;

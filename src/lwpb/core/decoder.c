@@ -120,7 +120,7 @@ static void debug_field_handler(struct lwpb_decoder *decoder,
         LWPB_DIAG_PRINTF("%llu", value->int64);
         break;
     case LWPB_BOOL:
-        LWPB_DIAG_PRINTF("%s", value->bool ? "true" : "false");
+        LWPB_DIAG_PRINTF("%s", value->boolean ? "true" : "false");
         break;
     case LWPB_ENUM:
         LWPB_DIAG_PRINTF("%d", value->enum_);
@@ -237,6 +237,8 @@ static enum wire_type field_wire_type(const struct lwpb_field_desc *field_desc)
     case LWPB_BYTES:
     case LWPB_MESSAGE:
         return WT_STRING;
+    default:        
+        return LWPB_UNKNOWN_FIELD;
     }
 }
 
@@ -359,6 +361,7 @@ decode_nested:
             
             if (decoder->packed) {
                 wire_type = field_wire_type(field_desc);
+                if(wire_type == LWPB_UNKNOWN_FIELD) return LWPB_ERR_INVALID_FIELD;
             } else {
                 // Decode the field key
                 ret = lwpb_decode_varint(&frame->buf, &key);
@@ -466,7 +469,7 @@ decode_nested:
                 value.int64 = wire_value.int64;
                 break;
             case LWPB_BOOL:
-                value.bool = wire_value.varint;
+                value.boolean = wire_value.varint;
                 break;
             case LWPB_ENUM:
                 value.enum_ = wire_value.varint;
