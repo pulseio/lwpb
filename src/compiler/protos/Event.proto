@@ -1,0 +1,21 @@
+message PulseMessageURLEvent {
+    optional string url = 1;
+    optional bool cancelled = 2;
+    optional int32 redirects = 3;
+    optional string error = 4;
+    optional int32 statusCode = 5;
+    optional double bandwidth = 6;
+    optional int64 bytes = 7;
+    optional double latency = 8;	
+}
+
+message PulseMessageEvent {
+    enum Type {
+        Generic = 1;
+        URL = 2;
+    }
+    required Type type = 1 [default = Generic];
+    optional double start = 2;
+    optional double time = 3;
+    optional PulseMessageURLEvent urlEvent = 4;    
+}

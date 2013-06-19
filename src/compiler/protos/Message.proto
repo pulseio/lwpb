@@ -1,0 +1,23 @@
+import "Trace.proto";
+import "Event.proto";
+import "Sample.proto";
+
+message PulseMessage {
+    enum Type { 
+        TRACE = 1;
+        EVENT = 2;
+        SAMPLE_STREAM = 3;
+    }
+    required Type type = 1;
+    optional PulseMessageTrace trace = 2;
+    optional PulseMessageEvent event = 3;
+    optional PulseMessageSampleStream samples = 4;
+}
+
+message PulseMessageStream {
+    repeated PulseMessage message = 1;
+    optional string sessionID = 2;    
+    optional string clientID = 3;
+    optional sint32 timezoneOffset = 4;
+    optional string timezoneAbbreviation = 5;
+}

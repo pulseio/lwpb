@@ -27,6 +27,9 @@ all : $(TARGET)
 $(TARGET) : $(OBJECTS)
 	$(AR) -cr $@ $^
 
+compiler: 
+	$(MAKE) -C ./src/compiler
+
 check :
 	$(MAKE) -C ./test check
 
