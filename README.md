@@ -58,6 +58,11 @@ To compile:
 To test it:
 
     make check
+    
+To use the code generator:
+    cd src/compiler
+    make
+    protoc --plugin=protoc-gen-lwpb=./protoc-gen-lwpb --lwpb_out=<Out directory> <Proto Files>...
 
 <span id="performance"></span>
 
