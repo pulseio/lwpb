@@ -1,2 +1,3 @@
 *.o
 src/liblwpb.a
+src/compiler/protoc-gen-lwpb
