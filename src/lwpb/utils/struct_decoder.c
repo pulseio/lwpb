@@ -91,7 +91,7 @@ static void unpack_field(struct lwpb_struct_decoder *sdecoder,
         break;
     case LWPB_BOOL:
         LWPB_ASSERT(field->len == sizeof(lwpb_bool_t), "Field type mismatch");
-        *((lwpb_bool_t *) FIELD_BASE(field, frame->base, frame->field_index)) = value->bool;
+        *((lwpb_bool_t *) FIELD_BASE(field, frame->base, frame->field_index)) = value->boolean;
         frame->field_index++;
         break;
     case LWPB_ENUM:

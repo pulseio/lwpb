@@ -151,7 +151,7 @@ static void debug_field_handler(struct lwpb_decoder *decoder,
  * @return Returns LWPB_ERR_OK if successful or LWPB_ERR_END_OF_BUF if there
  * were not enough bytes in the memory buffer. 
  */
-lwpb_err_t lwpb_decode_varint(struct lwpb_buf *buf, u64_t *varint)
+lwpb_err_t lwpb_decode_varint(struct lwpb_old_buf *buf, u64_t *varint)
 {
     int bitpos;
     
@@ -174,9 +174,9 @@ lwpb_err_t lwpb_decode_varint(struct lwpb_buf *buf, u64_t *varint)
  * @return Returns LWPB_ERR_OK if successful or LWPB_ERR_END_OF_BUF if there
  * were not enough bytes in the memory buffer. 
  */
-lwpb_err_t lwpb_decode_32bit(struct lwpb_buf *buf, u32_t *value)
+lwpb_err_t lwpb_decode_32bit(struct lwpb_old_buf *buf, u32_t *value)
 {
-    if (lwpb_buf_left(buf) < 4)
+    if (lwpb_old_buf_left(buf) < 4)
         return LWPB_ERR_END_OF_BUF;
 
     *value = buf->pos[0] | (buf->pos[1] << 8) |
@@ -193,11 +193,11 @@ lwpb_err_t lwpb_decode_32bit(struct lwpb_buf *buf, u32_t *value)
  * @return Returns LWPB_ERR_OK if successful or LWPB_ERR_END_OF_BUF if there
  * were not enough bytes in the memory buffer. 
  */
-lwpb_err_t lwpb_decode_64bit(struct lwpb_buf *buf, u64_t *value)
+lwpb_err_t lwpb_decode_64bit(struct lwpb_old_buf *buf, u64_t *value)
 {
     int i;
     
-    if (lwpb_buf_left(buf) < 8)
+    if (lwpb_old_buf_left(buf) < 8)
         return LWPB_ERR_END_OF_BUF;
     
     *value = 0;
@@ -342,7 +342,7 @@ lwpb_err_t lwpb_decoder_decode(struct lwpb_decoder *decoder,
     decoder->depth = 1;
     decoder->packed = 0;
     frame = &decoder->stack[decoder->depth - 1];
-    lwpb_buf_init(&frame->buf, data, len);
+    lwpb_old_buf_init(&frame->buf, data, len);
     frame->msg_desc = msg_desc;
     
     while (decoder->depth >= 1) {
@@ -352,12 +352,12 @@ decode_nested:
         frame = &decoder->stack[decoder->depth - 1];
         
         // Notify start message
-        if (frame->msg_desc && lwpb_buf_used(&frame->buf) == 0)
+        if (frame->msg_desc && lwpb_old_buf_used(&frame->buf) == 0)
             if (decoder->msg_start_handler)
                 decoder->msg_start_handler(decoder, frame->msg_desc, decoder->arg);
 
         // Process buffer
-        while (lwpb_buf_left(&frame->buf) > 0) {
+        while (lwpb_old_buf_left(&frame->buf) > 0) {
             
             if (decoder->packed) {
                 wire_type = field_wire_type(field_desc);
@@ -395,7 +395,7 @@ decode_nested:
                 ret = lwpb_decode_varint(&frame->buf, &wire_value.string.len);
                 if (ret != LWPB_ERR_OK)
                     return ret;
-                if (wire_value.string.len > lwpb_buf_left(&frame->buf))
+                if (wire_value.string.len > lwpb_old_buf_left(&frame->buf))
                     return LWPB_ERR_END_OF_BUF;
                 wire_value.string.data = frame->buf.pos;
                 frame->buf.pos += wire_value.string.len;
@@ -420,7 +420,7 @@ decode_nested:
                 
                 // Create new stack frame
                 new_frame = push_stack_frame(decoder);
-                lwpb_buf_init(&new_frame->buf, wire_value.string.data, wire_value.string.len);
+                lwpb_old_buf_init(&new_frame->buf, wire_value.string.data, wire_value.string.len);
                 new_frame->msg_desc = frame->msg_desc;
                 
                 // Enter packed repeated mode
@@ -489,7 +489,7 @@ decode_nested:
                 
                 // Create new stack frame
                 new_frame = push_stack_frame(decoder);
-                lwpb_buf_init(&new_frame->buf, wire_value.string.data, wire_value.string.len);
+                lwpb_old_buf_init(&new_frame->buf, wire_value.string.data, wire_value.string.len);
                 new_frame->msg_desc = field_desc->msg_desc;
                 
                 goto decode_nested;
@@ -512,7 +512,7 @@ decode_nested:
     }
     
     if (used)
-        *used = lwpb_buf_used(&decoder->stack[0].buf);
+        *used = lwpb_old_buf_used(&decoder->stack[0].buf);
     
     return LWPB_ERR_OK;
 }

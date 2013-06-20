@@ -33,7 +33,7 @@
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
-static int verbose = 0;
+static int verbose = 1;
 
 /** Checks an lwpb return code. */
 #define CHECK_LWPB(err)                                                     \
@@ -75,7 +75,7 @@ static void check_buf(const u8_t *actual_data,
                       const char *static_buf_name,
                       const char *filename,
                       unsigned lineno)
-{
+{    
     if (verbose)
         LWPB_DIAG_PRINTF("checking buffer\n");
     
@@ -360,7 +360,7 @@ static void generic_field_handler(struct lwpb_decoder *decoder,
         }
     } else if (msg_desc == foo_TestMessRequiredBool) {
         if (field_desc == foo_TestMessRequiredBool_test) {
-            CHECK_VALUE(value->bool, fields->u.TestMessRequiredBool.test); return;
+            CHECK_VALUE(value->boolean, fields->u.TestMessRequiredBool.test); return;
         }
     } else if (msg_desc == foo_TestMessRequiredString) {
         if (field_desc == foo_TestMessRequiredString_test) {
@@ -396,7 +396,7 @@ static void generic_field_handler(struct lwpb_decoder *decoder,
         } else if (field_desc == foo_TestMessOptional_test_double) {
             CHECK_FVALUE(value->double_, fields->u.TestMessOptional.test_double); return;
         } else if (field_desc == foo_TestMessOptional_test_boolean) {
-            CHECK_VALUE(value->bool, fields->u.TestMessOptional.test_boolean); return;
+            CHECK_VALUE(value->boolean, fields->u.TestMessOptional.test_boolean); return;
         } else if (field_desc == foo_TestMessOptional_test_enum_small) {
             CHECK_VALUE(value->enum_, fields->u.TestMessOptional.test_enum_small); return;
         } else if (field_desc == foo_TestMessOptional_test_enum) {
@@ -432,7 +432,7 @@ static void generic_field_handler(struct lwpb_decoder *decoder,
         } else if (field_desc == foo_TestMess_test_double) {
             CHECK_FVALUE(value->double_, *fields->u.TestMess.test_double++); return;
         } else if (field_desc == foo_TestMess_test_boolean) {
-            CHECK_VALUE(value->bool, *fields->u.TestMess.test_boolean++); return;
+            CHECK_VALUE(value->boolean, *fields->u.TestMess.test_boolean++); return;
         } else if (field_desc == foo_TestMess_test_enum_small) {
             CHECK_VALUE(value->enum_, *fields->u.TestMess.test_enum_small++); return;
         } else if (field_desc == foo_TestMess_test_enum) {
@@ -466,7 +466,7 @@ static void generic_field_handler(struct lwpb_decoder *decoder,
         } else if (field_desc == foo_TestMessPacked_test_double) {
             CHECK_FVALUE(value->double_, *fields->u.TestMessPacked.test_double++); return;
         } else if (field_desc == foo_TestMessPacked_test_boolean) {
-            CHECK_VALUE(value->bool, *fields->u.TestMessPacked.test_boolean++); return;
+            CHECK_VALUE(value->boolean, *fields->u.TestMessPacked.test_boolean++); return;
         } else if (field_desc == foo_TestMessPacked_test_enum_small) {
             CHECK_VALUE(value->enum_, *fields->u.TestMessPacked.test_enum_small++); return;
         } else if (field_desc == foo_TestMessPacked_test_enum) {
