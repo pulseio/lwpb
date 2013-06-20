@@ -68,6 +68,7 @@ typedef enum {
     LWPB_ERR_MEM,               /**< Memory allocation failed */
     // Socket service error codes
     LWPB_ERR_NET_INIT,          /**< Network initialization failed */
+    LWPB_ERR_SOCKET_CLOSED,     /* socket was closed */
 } lwpb_err_t;
 
 /* Field labels */
@@ -201,8 +202,22 @@ typedef enum {
 /** Simple memory buffer */
 struct lwpb_buf {
     u8_t *base;     /**< Buffers base address */
-    u8_t *pos;      /**< Buffers current position */
-    u8_t *end;      /**< Buffers end address (first invalid byte) */
+    size_t size; /* total buffer size */
+    lwpb_bool_t resizable; /* this is a dynamic buffer that can be resized */
 };
+
+/** nested buffer.  Can represent a section of parent lwpb_buf.  Written to without changing state of parent buffer **/
+struct lwpb_nested_buf {
+    struct lwpb_buf *parent;
+    size_t start; /* starting offset in parent */
+    size_t pos; /* current position in parent */    
+};
+
+struct lwpb_old_buf {
+    u8_t *base;
+    u8_t *pos;
+    u8_t *end;
+};
+
 
 #endif // __LWPB_CORE_TYPES_H__

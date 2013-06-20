@@ -16,11 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <lwpb/lwpb.h>
 
 #include "private.h"
-
 
 #define MSG_RESERVE_BYTES 10
 
@@ -35,18 +33,18 @@
  * @return Returns LWPB_ERR_OK if successful or LWPB_ERR_END_OF_BUF if there
  * was not enough space left in the memory buffer. 
  */
-static lwpb_err_t encode_varint(struct lwpb_buf *buf, u64_t varint)
+static lwpb_err_t encode_varint(struct lwpb_nested_buf *buf, u64_t varint)
 {
-    do {
-        if (lwpb_buf_left(buf) < 1)
-            return LWPB_ERR_END_OF_BUF;
+    do {        
+        u8_t val;
         if (varint > 127) {
-            *buf->pos = 0x80 | (varint & 0x7F);
+            val = 0x80 | (varint & 0x7F);
         } else {
-            *buf->pos = (varint & 0x7F);
+            val  = (varint & 0x7F);
         }
+        if(!lwpb_nested_buf_push_bytes(buf, &val, 1)) return LWPB_ERR_END_OF_BUF;
+
         varint >>= 7;
-        buf->pos++;
     } while (varint);
     
     return LWPB_ERR_OK;
@@ -59,16 +57,19 @@ static lwpb_err_t encode_varint(struct lwpb_buf *buf, u64_t varint)
  * @return Returns LWPB_ERR_OK if successful or LWPB_ERR_END_OF_BUF if there
  * was not enough space left in the memory buffer. 
  */
-static lwpb_err_t encode_32bit(struct lwpb_buf *buf, u32_t value)
+static lwpb_err_t encode_32bit(struct lwpb_nested_buf *buf, u32_t value)
 {
-    if (lwpb_buf_left(buf) < 4)
+    if (!lwpb_buf_make_space(buf->parent, buf->pos + 4))
         return LWPB_ERR_END_OF_BUF;
+
+    u8_t bigEndian[4];
     
-    buf->pos[0] = (value) & 0xff;
-    buf->pos[1] = (value >> 8) & 0xff;
-    buf->pos[2] = (value >> 16) & 0xff;
-    buf->pos[3] = (value >> 24) & 0xff;
-    buf->pos += 4;
+    bigEndian[0] = (value) & 0xff;
+    bigEndian[1] = (value >> 8) & 0xff;
+    bigEndian[2] = (value >> 16) & 0xff;
+    bigEndian[3] = (value >> 24) & 0xff;
+
+    if(!lwpb_nested_buf_push_bytes(buf, bigEndian, 4)) return LWPB_ERR_END_OF_BUF;
     
     return LWPB_ERR_OK;
 }
@@ -80,21 +81,20 @@ static lwpb_err_t encode_32bit(struct lwpb_buf *buf, u32_t value)
  * @return Returns LWPB_ERR_OK if successful or LWPB_ERR_END_OF_BUF if there
  * was not enough space left in the memory buffer. 
  */
-static lwpb_err_t encode_64bit(struct lwpb_buf *buf, u64_t value)
+static lwpb_err_t encode_64bit(struct lwpb_nested_buf *buf, u64_t value)
 {
-    if (lwpb_buf_left(buf) < 8)
-        return LWPB_ERR_END_OF_BUF;
+    u8_t buffer[8];
     
-    buf->pos[0] = (value) & 0xff;
-    buf->pos[1] = (value >> 8) & 0xff;
-    buf->pos[2] = (value >> 16) & 0xff;
-    buf->pos[3] = (value >> 24) & 0xff;
+    buffer[0] = (value) & 0xff;
+    buffer[1] = (value >> 8) & 0xff;
+    buffer[2] = (value >> 16) & 0xff;
+    buffer[3] = (value >> 24) & 0xff;
     value >>= 32;
-    buf->pos[4] = (value) & 0xff;
-    buf->pos[5] = (value >> 8) & 0xff;
-    buf->pos[6] = (value >> 16) & 0xff;
-    buf->pos[7] = (value >> 24) & 0xff;
-    buf->pos += 8;
+    buffer[4] = (value) & 0xff;
+    buffer[5] = (value >> 8) & 0xff;
+    buffer[6] = (value >> 16) & 0xff;
+    buffer[7] = (value >> 24) & 0xff;
+    if(!lwpb_nested_buf_push_bytes(buf, buffer, 8)) return LWPB_ERR_END_OF_BUF;    
     
     return LWPB_ERR_OK;
 }
@@ -134,6 +134,19 @@ void lwpb_encoder_init(struct lwpb_encoder *encoder)
     encoder->depth = 0;
 }
 
+void lwpb_encoder_start_common(struct lwpb_encoder *encoder,
+                               const struct lwpb_msg_desc *msg_desc){
+
+    struct lwpb_encoder_stack_frame *frame = &encoder->stack[0];
+    
+    encoder->depth = 1;
+    encoder->packed = 0;
+    
+    lwpb_nested_buf_init(&frame->nested_buf, &encoder->buf, 0);
+    frame->field_desc = NULL;
+    frame->msg_desc = msg_desc;
+}
+
 /**
  * Starts encoding a message.
  * @param encoder Encoder
@@ -145,15 +158,28 @@ void lwpb_encoder_start(struct lwpb_encoder *encoder,
                         const struct lwpb_msg_desc *msg_desc,
                         void *data, size_t len)
 {
-    struct lwpb_encoder_stack_frame *frame = &encoder->stack[0];
-    
-    encoder->depth = 1;
-    encoder->packed = 0;
-    
-    lwpb_buf_init(&frame->buf, data, len);
-    frame->field_desc = NULL;
-    frame->msg_desc = msg_desc;
+    lwpb_encoder_start_common(encoder, msg_desc);
+    lwpb_buf_init(&encoder->buf, data, len, 0);
 }
+
+/* Just like lwpb_encoder_start, but allocated memory dynamically, starting with 
+ * initial length bytes */
+void lwpb_encoder_start_dynamic_with_length(struct lwpb_encoder *encoder, 
+                                            const struct lwpb_msg_desc *msg_desc,
+                                            size_t initial_len){
+    lwpb_encoder_start_common(encoder, msg_desc);    
+    lwpb_buf_init(&encoder->buf, malloc(initial_len), initial_len, 1);
+}
+
+/* Start encoding with dynamic buffer using a default length
+ */
+void lwpb_encoder_start_dynamic(struct lwpb_encoder *encoder, 
+                                const struct lwpb_msg_desc *msg_desc)
+{
+    lwpb_encoder_start_dynamic_with_length(encoder, msg_desc, 128);
+}
+    
+
 
 /**
  * Finishes encoding a message.
@@ -162,8 +188,21 @@ void lwpb_encoder_start(struct lwpb_encoder *encoder,
  */
 size_t lwpb_encoder_finish(struct lwpb_encoder *encoder)
 {
-    return lwpb_buf_used(&encoder->stack[0].buf);
+    return lwpb_nested_buf_used(&encoder->stack[0].nested_buf);
 }
+
+/**
+ * Finished encoding a message using a dynamic buffer
+ * @param encoder Encoder
+ * @param size - Populated with size of buffer on return
+ * @return Returns the buffer.  This transfers pointer ownership, so you must free the buffer when done.
+ */
+
+u8_t *lwpb_encoder_finish_dynamic(struct lwpb_encoder *encoder, size_t *size){
+    *size = lwpb_nested_buf_used(&encoder->stack[0].nested_buf);
+    return encoder->buf.base;
+}
+
 
 /**
  * Starts encoding a nested message.
@@ -189,10 +228,10 @@ lwpb_err_t lwpb_encoder_nested_start(struct lwpb_encoder *encoder,
     // Reserve a few bytes for the field on the parent frame. This is where
     // the field key (message) and the message length will be stored, once it
     // is known.
-    if (lwpb_buf_left(&frame->buf) < MSG_RESERVE_BYTES)
+    if (!lwpb_buf_make_space(frame->nested_buf.parent, frame->nested_buf.pos + MSG_RESERVE_BYTES))
         return LWPB_ERR_END_OF_BUF;
-    lwpb_buf_init(&new_frame->buf, frame->buf.pos + MSG_RESERVE_BYTES,
-                  lwpb_buf_left(&frame->buf) - MSG_RESERVE_BYTES);
+
+    lwpb_nested_buf_init(&new_frame->nested_buf, frame->nested_buf.parent, frame->nested_buf.pos + MSG_RESERVE_BYTES);
     
     return LWPB_ERR_OK;
 }
@@ -213,8 +252,8 @@ lwpb_err_t lwpb_encoder_nested_end(struct lwpb_encoder *encoder)
     // Pop the stack
     pop_stack_frame(encoder);
 
-    value.message.data = frame->buf.base;
-    value.message.len = lwpb_buf_used(&frame->buf);
+    value.message.data = frame->nested_buf.parent->base + frame->nested_buf.start;
+    value.message.len = lwpb_nested_buf_used(&frame->nested_buf);
     return lwpb_encoder_add_field(encoder, frame->field_desc, &value);
 }
 
@@ -245,10 +284,10 @@ lwpb_err_t lwpb_encoder_packed_repeated_start(struct lwpb_encoder *encoder,
     // Reserve a few bytes for the field on the parent frame. This is where
     // the field key (type) and the message length will be stored, once it
     // is known.
-    if (lwpb_buf_left(&frame->buf) < MSG_RESERVE_BYTES)
+    if (!lwpb_buf_make_space(frame->nested_buf.parent, frame->nested_buf.pos + MSG_RESERVE_BYTES))
         return LWPB_ERR_END_OF_BUF;
-    lwpb_buf_init(&new_frame->buf, frame->buf.pos + MSG_RESERVE_BYTES,
-                  lwpb_buf_left(&frame->buf) - MSG_RESERVE_BYTES);
+
+    lwpb_nested_buf_init(&new_frame->nested_buf, frame->nested_buf.parent, frame->nested_buf.pos + MSG_RESERVE_BYTES);
     
     // Enter packed repeated mode
     encoder->packed = 1;
@@ -277,8 +316,8 @@ lwpb_err_t lwpb_encoder_packed_repeated_end(struct lwpb_encoder *encoder)
     // Leave packed repeated mode
     encoder->packed = 0;
     
-    value.message.data = frame->buf.base;
-    value.message.len = lwpb_buf_used(&frame->buf);
+    value.message.data = frame->nested_buf.parent->base + frame->nested_buf.start;
+    value.message.len = lwpb_nested_buf_used(&frame->nested_buf);
     return lwpb_encoder_add_field(encoder, frame->field_desc, &value);
 }
 
@@ -410,40 +449,40 @@ lwpb_err_t lwpb_encoder_add_field(struct lwpb_encoder *encoder,
         }
         
         key = wire_type | (field_desc->number << 3);
-        ret = encode_varint(&frame->buf, key);
+        ret = encode_varint(&frame->nested_buf, key);
         if (ret != LWPB_ERR_OK)
             return ret;
     }
     
     switch (wire_type) {
     case WT_VARINT:
-        ret = encode_varint(&frame->buf, wire_value.varint);
+        ret = encode_varint(&frame->nested_buf, wire_value.varint);
         if (ret != LWPB_ERR_OK)
             return ret;
         break;
     case WT_64BIT:
-        ret = encode_64bit(&frame->buf, wire_value.int64);
+        ret = encode_64bit(&frame->nested_buf, wire_value.int64);
         if (ret != LWPB_ERR_OK)
             return ret;
         break;
     case WT_STRING:
-        ret = encode_varint(&frame->buf, wire_value.string.len);
+        ret = encode_varint(&frame->nested_buf, wire_value.string.len);
         if (ret != LWPB_ERR_OK)
             return ret;
-        if (lwpb_buf_left(&frame->buf) < wire_value.string.len)
+        if (!lwpb_buf_make_space(frame->nested_buf.parent, frame->nested_buf.pos + wire_value.string.len))
             return LWPB_ERR_END_OF_BUF;
         // Use memmove() when writing a message or packed repeated field as the
         // memory areas are overlapping.
         if ((field_desc->opts.typ == LWPB_MESSAGE) ||
             LWPB_IS_PACKED_REPEATED(field_desc)) {
-            LWPB_MEMMOVE(frame->buf.pos, wire_value.string.data, wire_value.string.len);
+            LWPB_MEMMOVE(frame->nested_buf.parent->base + frame->nested_buf.pos, wire_value.string.data, wire_value.string.len);
         } else {
-            LWPB_MEMCPY(frame->buf.pos, wire_value.string.data, wire_value.string.len);
+            LWPB_MEMCPY(frame->nested_buf.parent->base + frame->nested_buf.pos, wire_value.string.data, wire_value.string.len);
         }
-        frame->buf.pos += wire_value.string.len;
+        frame->nested_buf.pos += wire_value.string.len;
         break;
     case WT_32BIT:
-        ret = encode_32bit(&frame->buf, wire_value.int32);
+        ret = encode_32bit(&frame->nested_buf, wire_value.int32);
         if (ret != LWPB_ERR_OK)
             return ret;
         break;

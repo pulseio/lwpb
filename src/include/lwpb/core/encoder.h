@@ -24,9 +24,10 @@
 
 /** Encoder stack frame */
 struct lwpb_encoder_stack_frame {
-    struct lwpb_buf buf;
+    
     const struct lwpb_field_desc *field_desc;
     const struct lwpb_msg_desc *msg_desc;
+    struct lwpb_nested_buf nested_buf;
 };
 
 /** Protocol buffer encoder */
@@ -34,6 +35,7 @@ struct lwpb_encoder {
     struct lwpb_encoder_stack_frame stack[LWPB_MAX_DEPTH];
     int depth;
     lwpb_bool_t packed;
+    struct lwpb_buf buf;
 };
 
 void lwpb_encoder_init(struct lwpb_encoder *encoder);
@@ -43,6 +45,8 @@ void lwpb_encoder_start(struct lwpb_encoder *encoder,
                         void *data, size_t len);
 
 size_t lwpb_encoder_finish(struct lwpb_encoder *encoder);
+
+u8_t *lwpb_encoder_finish_dynamic(struct lwpb_encoder *encoder, size_t *size);
 
 lwpb_err_t lwpb_encoder_nested_start(struct lwpb_encoder *encoder,
                                      const struct lwpb_field_desc *field_desc);

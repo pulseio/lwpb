@@ -22,6 +22,8 @@
 
 #include <lwpb/lwpb.h>
 
+#define MAX(a,b) ((a) >= (b) ? (a) : (b))
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
 
 /** Protocol buffer wire types */
 enum wire_type {
@@ -42,10 +44,26 @@ union wire_value {
     u32_t int32;
 };
 
-void lwpb_buf_init(struct lwpb_buf *buf, void *data, size_t len);
+void lwpb_buf_init(struct lwpb_buf *buf, void *data, size_t len, lwpb_bool_t resizable);
+void lwpb_nested_buf_init(struct lwpb_nested_buf *buf, struct lwpb_buf *parent, size_t start);
+lwpb_bool_t lwpb_buf_make_space(struct lwpb_buf *buf, size_t bytes);
 
-size_t lwpb_buf_used(struct lwpb_buf *buf);
+size_t lwpb_nested_buf_used(struct lwpb_nested_buf *buf);
+size_t lwpb_nested_buf_left(struct lwpb_nested_buf *buf);
 
-size_t lwpb_buf_left(struct lwpb_buf *buf);
+size_t lwpb_old_buf_used(struct lwpb_old_buf *buf);
+size_t lwpb_old_buf_left(struct lwpb_old_buf *buf);
+
+static inline lwpb_bool_t lwpb_buf_push_bytes(struct lwpb_buf *buf, size_t at, u8_t *bytes, size_t len) {
+    if(!lwpb_buf_make_space(buf, at + len)) return 0;
+    LWPB_MEMCPY(buf->base + at, bytes, len);
+    return 1;
+}
+
+static inline lwpb_bool_t lwpb_nested_buf_push_bytes(struct lwpb_nested_buf *buf, u8_t *bytes, size_t len){    
+    lwpb_bool_t success = lwpb_buf_push_bytes(buf->parent, buf->pos, bytes, len);
+    if(success){buf->pos += len;}
+    return success;
+}
 
 #endif // __LWPB_CORE_PRIVATE_H__

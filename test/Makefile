@@ -1,4 +1,5 @@
 PROGRAMS = \
+test_full_dynamic \
 test_simple \
 test_full \
 test_full_generate \
@@ -25,6 +26,9 @@ test_simple : test_simple.o generated/test_simple_pb2.o
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) 
 
 test_full : test_full.o generated/test_full_pb2.o
+	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) 
+
+test_full_dynamic : test_full_dynamic.o generated/test_full_pb2.o
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) 
 
 test_full_generate : test_full_generate.o generated/test_full.pb.o

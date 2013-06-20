@@ -30,9 +30,10 @@ $(TARGET) : $(OBJECTS)
 compiler: 
 	$(MAKE) -C ./src/compiler
 
-check :
+check : $(TARGET)
 	$(MAKE) -C ./test check
 
 clean :
 	rm -f $(TARGET) $(OBJECTS)
+	$(MAKE) -C ./test clean
 

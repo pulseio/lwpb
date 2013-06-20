@@ -762,7 +762,7 @@ const struct lwpb_field_desc lwpb_fields_foo_testmessoptional[] = {
         .name = "test_boolean",
 #endif
 #if LWPB_FIELD_DEFAULTS
-        .def.bool = 0,
+        .def.boolean = 0,
 #endif
     },
     {
@@ -1048,7 +1048,7 @@ const struct lwpb_field_desc lwpb_fields_foo_testmessrequiredbool[] = {
         .name = "test",
 #endif
 #if LWPB_FIELD_DEFAULTS
-        .def.bool = 0,
+        .def.boolean = 0,
 #endif
     },
 };
