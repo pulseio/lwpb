@@ -33,7 +33,7 @@
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
-static int verbose = 1;
+static int verbose = 0;
 
 /** Checks an lwpb return code. */
 #define CHECK_LWPB(err)                                                     \
@@ -41,7 +41,7 @@ static int verbose = 1;
         if (verbose)                                                        \
             LWPB_DIAG_PRINTF("checking lwpb result\n");                     \
         if ((err) != LWPB_ERR_OK) {                                         \
-            LWPB_DIAG_PRINTF("%s [%d]: function returned: %d (%s)\n",       \
+            LWPB_DIAG_PRINTF("TEST FAILED  -> %s [%d]: function returned: %d (%s)\n",       \
                    __FILE__, __LINE__, err, lwpb_err_text(err));            \
             LWPB_ABORT();                                                   \
         }                                                                   \
@@ -82,7 +82,7 @@ static void check_buf(const u8_t *actual_data,
     if (buf_equal(actual_data, actual_len, expected_data, expected_len))
         return;
     
-    LWPB_DIAG_PRINTF("%s [%d]: buffer is not as expected\n", filename, lineno);
+    LWPB_DIAG_PRINTF("TEST FAILED -> %s [%d]: buffer is not as expected\n", filename, lineno);
     LWPB_DIAG_PRINTF("actual (length = %zu):\n", actual_len);
     dump_buf(actual_data, actual_len);
     LWPB_DIAG_PRINTF("expected (length = %zu) (%s):\n", expected_len, static_buf_name);

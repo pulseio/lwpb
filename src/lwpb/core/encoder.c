@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdio.h>
 #include <lwpb/lwpb.h>
 
 #include "private.h"
@@ -46,7 +45,6 @@ static lwpb_err_t encode_varint(struct lwpb_nested_buf *buf, u64_t varint)
         if(!lwpb_nested_buf_push_bytes(buf, &val, 1)) return LWPB_ERR_END_OF_BUF;
 
         varint >>= 7;
-        buf->pos++;
     } while (varint);
     
     return LWPB_ERR_OK;
@@ -325,8 +323,6 @@ lwpb_err_t lwpb_encoder_add_field(struct lwpb_encoder *encoder,
         if (i == frame->msg_desc->num_fields)
             return LWPB_ERR_UNKNOWN_FIELD;
     }
-
-    printf("Writing field");
     
     // Encode wire value
     switch (field_desc->opts.typ) {
