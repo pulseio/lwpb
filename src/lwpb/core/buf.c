@@ -18,8 +18,7 @@
  */
 
 #include <lwpb/lwpb.h>
-
-#define MAX(a,b) ((a) >= (b) ? (a) : (b))
+#include "private.h"
 
 /**
  * Initializes a memory buffer. Sets the position to the base address.
@@ -27,11 +26,11 @@
  * @param data Base address of memory
  * @param len Length of memory
  */
-void lwpb_buf_init(struct lwpb_buf *buf, void *data, size_t len)
+void lwpb_buf_init(struct lwpb_buf *buf, void *data, size_t len, lwpb_bool_t resizable)
 {
     buf->base = data;
     buf->size = len;
-    buf->resizable = 0;
+    buf->resizable = resizable;
 }
 
 void lwpb_old_buf_init(struct lwpb_old_buf *buf, void *data, size_t len){

@@ -46,6 +46,8 @@ void lwpb_encoder_start(struct lwpb_encoder *encoder,
 
 size_t lwpb_encoder_finish(struct lwpb_encoder *encoder);
 
+u8_t *lwpb_encoder_finish_dynamic(struct lwpb_encoder *encoder, size_t *size);
+
 lwpb_err_t lwpb_encoder_nested_start(struct lwpb_encoder *encoder,
                                      const struct lwpb_field_desc *field_desc);
 

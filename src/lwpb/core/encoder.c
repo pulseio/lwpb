@@ -134,6 +134,19 @@ void lwpb_encoder_init(struct lwpb_encoder *encoder)
     encoder->depth = 0;
 }
 
+void lwpb_encoder_start_common(struct lwpb_encoder *encoder,
+                               const struct lwpb_msg_desc *msg_desc){
+
+    struct lwpb_encoder_stack_frame *frame = &encoder->stack[0];
+    
+    encoder->depth = 1;
+    encoder->packed = 0;
+    
+    lwpb_nested_buf_init(&frame->nested_buf, &encoder->buf, 0);
+    frame->field_desc = NULL;
+    frame->msg_desc = msg_desc;
+}
+
 /**
  * Starts encoding a message.
  * @param encoder Encoder
@@ -145,15 +158,25 @@ void lwpb_encoder_start(struct lwpb_encoder *encoder,
                         const struct lwpb_msg_desc *msg_desc,
                         void *data, size_t len)
 {
-    struct lwpb_encoder_stack_frame *frame = &encoder->stack[0];
+    lwpb_encoder_start_common(encoder, msg_desc);
+    lwpb_buf_init(&encoder->buf, data, len, 0);
+}
+
+/* just like lwpb_encoder_start, but allocated memory dynamically, starting with 
+ * initial length bytes
+ */
+void lwpb_encoder_start_dynamic(struct lwpb_encoder *encoder, 
+                                const struct lwpb_msg_desc *msg_desc)
+{
+    lwpb_encoder_start_dynamic_with_length(encoder, msg_desc, 128);
+}
     
-    encoder->depth = 1;
-    encoder->packed = 0;
-    
-    lwpb_buf_init(&encoder->buf, data, len);
-    lwpb_nested_buf_init(&frame->nested_buf, &encoder->buf, 0);
-    frame->field_desc = NULL;
-    frame->msg_desc = msg_desc;
+/* Dynamic memory with initial length */
+void lwpb_encoder_start_dynamic_with_length(struct lwpb_encoder *encoder, 
+                                            const struct lwpb_msg_desc *msg_desc,
+                                            size_t initial_len){
+    lwpb_encoder_start_common(encoder, msg_desc);    
+    lwpb_buf_init(&encoder->buf, malloc(initial_len), initial_len, 0);
 }
 
 /**
@@ -165,6 +188,19 @@ size_t lwpb_encoder_finish(struct lwpb_encoder *encoder)
 {
     return lwpb_nested_buf_used(&encoder->stack[0].nested_buf);
 }
+
+/**
+ * Finished encoding a message using a dynamic buffer
+ * @param encoder Encoder
+ * @param size - Populated with size of buffer on return
+ * @return Returns the buffer.  This transfers pointer ownership, so you must free the buffer when done.
+ */
+
+u8_t *lwpb_encoder_finish_dynamic(struct lwpb_encoder *encoder, size_t *size){
+    *size = lwpb_nested_buf_used(&encoder->stack[0].nested_buf);
+    return encoder->buf.base;
+}
+
 
 /**
  * Starts encoding a nested message.

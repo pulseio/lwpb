@@ -1,9 +1,5 @@
 PROGRAMS = \
-test_simple \
-test_full \
-test_full_generate \
-test_rpc_direct \
-test_struct_map \
+test_full_dynamic \
 
 # test_rpc_socket_client \
 # test_rpc_socket_server \
@@ -25,6 +21,9 @@ test_simple : test_simple.o generated/test_simple_pb2.o
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) 
 
 test_full : test_full.o generated/test_full_pb2.o
+	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) 
+
+test_full_dynamic : test_full_dynamic.o generated/test_full_pb2.o
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) 
 
 test_full_generate : test_full_generate.o generated/test_full.pb.o
