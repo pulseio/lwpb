@@ -51,6 +51,7 @@ lwpb_bool_t lwpb_buf_make_space(struct lwpb_buf *buf, size_t bytes);
 size_t lwpb_nested_buf_used(struct lwpb_nested_buf *buf);
 size_t lwpb_nested_buf_left(struct lwpb_nested_buf *buf);
 
+void lwpb_old_buf_init(struct lwpb_old_buf *buf, void *data, size_t len);
 size_t lwpb_old_buf_used(struct lwpb_old_buf *buf);
 size_t lwpb_old_buf_left(struct lwpb_old_buf *buf);
 

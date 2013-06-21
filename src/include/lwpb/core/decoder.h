@@ -47,6 +47,24 @@ typedef void (*lwpb_decoder_msg_end_handler_t)
      const struct lwpb_msg_desc *msg_desc, void *arg);
 
 /**
+ * This handler is called at the start of a nested message.  If this handler is set, the decoder
+ * will treat this message as opaque, and it's up to the handler to decode the nested structure.
+ * @param decoder Decoder
+ * @param msg_desc Message descriptor
+ * @param field_desc Field descriptor (i.e. type of nested message)
+ * @param buf Buffer containing serialized message
+ * @param len Length of message buffer
+ * @param arg User argument
+ */
+typedef void (*lwpb_decoder_nested_msg_handler_t)(struct lwpb_decoder *decoder, 
+                                                  const struct lwpb_msg_desc *msg_desc, 
+                                                  const struct lwpb_field_desc *field_desc,
+                                                  u8_t *buf, 
+                                                  size_t len, 
+                                                  void *arg);
+
+
+/**
  * This handler is called when the decoder has decoded a field.
  * @param decoder Decoder
  * @param msg_desc Message descriptor of the message containing the field
@@ -73,6 +91,7 @@ struct lwpb_decoder {
     lwpb_decoder_msg_start_handler_t msg_start_handler;
     lwpb_decoder_msg_end_handler_t msg_end_handler;
     lwpb_decoder_field_handler_t field_handler;
+    lwpb_decoder_nested_msg_handler_t nested_handler;
     struct lwpb_decoder_stack_frame stack[LWPB_MAX_DEPTH];
     int depth;
     int packed;

@@ -266,6 +266,7 @@ void lwpb_decoder_init(struct lwpb_decoder *decoder)
     decoder->msg_start_handler = NULL;
     decoder->msg_end_handler = NULL;
     decoder->field_handler = NULL;
+    decoder->nested_handler = NULL;
 }
 
 /**
@@ -301,6 +302,10 @@ void lwpb_decoder_field_handler(struct lwpb_decoder *decoder,
                               lwpb_decoder_field_handler_t field_handler)
 {
     decoder->field_handler = field_handler;
+}
+
+void lwpb_decoder_nested_handler(struct lwpb_decoder *decoder, lwpb_decoder_nested_msg_handler_t nested_handler){
+    decoder->nested_handler = nested_handler;
 }
 
 /**
@@ -417,7 +422,7 @@ decode_nested:
             // Handle packed repeated fields
             if ((wire_type == WT_STRING) &&
                 LWPB_IS_PACKED_REPEATED(field_desc)) {
-                
+                                
                 // Create new stack frame
                 new_frame = push_stack_frame(decoder);
                 lwpb_old_buf_init(&new_frame->buf, wire_value.string.data, wire_value.string.len);
@@ -484,15 +489,22 @@ decode_nested:
                 break;
             case LWPB_MESSAGE:
             default:
-                if (decoder->field_handler)
-                    decoder->field_handler(decoder, msg_desc, field_desc, NULL, decoder->arg);
+
+                // If the user specified 
+                if(decoder->nested_handler){
+                    decoder->nested_handler(decoder, msg_desc, field_desc, wire_value.string.data, wire_value.string.len, decoder->arg);
+                }
+                else {
+                    if (decoder->field_handler)
+                        decoder->field_handler(decoder, msg_desc, field_desc, NULL, decoder->arg);                                
+
+                    // Create new stack frame
+                    new_frame = push_stack_frame(decoder);
+                    lwpb_old_buf_init(&new_frame->buf, wire_value.string.data, wire_value.string.len);
+                    new_frame->msg_desc = field_desc->msg_desc;
                 
-                // Create new stack frame
-                new_frame = push_stack_frame(decoder);
-                lwpb_old_buf_init(&new_frame->buf, wire_value.string.data, wire_value.string.len);
-                new_frame->msg_desc = field_desc->msg_desc;
-                
-                goto decode_nested;
+                    goto decode_nested;
+                }
             }
             
             if (decoder->field_handler)
