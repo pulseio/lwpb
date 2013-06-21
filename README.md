@@ -51,6 +51,7 @@ C library
 
 The C library was originally released by Simon Kallweit. More documentation on the C API can be found here: [ http://code.google.com/p/lwpb/ ](http://code.google.com/p/lwpb/)
 
+
 To compile:
 
     make
@@ -65,7 +66,35 @@ To use the code generator:
     make
     protoc --plugin=protoc-gen-lwpb=./protoc-gen-lwpb --lwpb_out=<Out directory> <Proto Files>...
 
-<span id="performance"></span>
+
+
+The original library has been slightly tweaked to allow the use of dynamic buffers while decoding.  Here's the static buffer interface:
+
+```c
+struct lwpb_encoder;
+u8_t buf[128];
+size_t len;
+lwpb_encoder_init(&encoder);
+lwpb_encoder_start(&encoder, mymessage_def, buf, len);
+/* encode */
+len = lwpb_encoder_finish(&encoder);
+```
+
+The new interface is close, but slightly different:
+
+```c
+struct lwpb_encoder;
+u8_t *buf;
+size_t len;
+lwpb_encoder_init(&encoder);
+lwpb_encoder_start_dynamic(&encoder, mymessage_def);
+/* encode */
+buf = lwpb_encoder_finish_dynamic(&encoder, &len);
+/* do stuff with buffer */
+free(buf);
+```
+
+IMPORTANT: You must free the buffer returned from lwpb_encoder_finish_dynamic.  This admittedly slightly awkward interface allows no-copy semantics.
 
 Performance
 -----------
