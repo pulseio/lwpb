@@ -44,7 +44,29 @@ void lwpb_encoder_start(struct lwpb_encoder *encoder,
                         const struct lwpb_msg_desc *msg_desc,
                         void *data, size_t len);
 
+/* Just like lwpb_encoder_start, but allocated memory dynamically, starting with 
+ * initial length bytes */
+void lwpb_encoder_start_dynamic_with_length(struct lwpb_encoder *encoder, 
+                                            const struct lwpb_msg_desc *msg_desc,
+                                            size_t initial_len);
+
+/* Start encoding with dynamic buffer using a default length
+ */
+void lwpb_encoder_start_dynamic(struct lwpb_encoder *encoder, 
+                                const struct lwpb_msg_desc *msg_desc);
+
+
+
+
+
 size_t lwpb_encoder_finish(struct lwpb_encoder *encoder);
+
+/**
+ * Finished encoding a message using a dynamic buffer
+ * @param encoder Encoder
+ * @param size - Populated with size of buffer on return
+ * @return Returns the buffer.  This transfers pointer ownership, so you must free the buffer when done.
+ */
 
 u8_t *lwpb_encoder_finish_dynamic(struct lwpb_encoder *encoder, size_t *size);
 
