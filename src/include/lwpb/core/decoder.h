@@ -108,6 +108,8 @@ void lwpb_decoder_msg_handler(struct lwpb_decoder *decoder,
 void lwpb_decoder_field_handler(struct lwpb_decoder *decoder,
                               lwpb_decoder_field_handler_t field_handler);
 
+void lwpb_decoder_nested_handler(struct lwpb_decoder *decoder, lwpb_decoder_nested_msg_handler_t nested_handler);
+
 void lwpb_decoder_use_debug_handlers(struct lwpb_decoder *decoder);
 
 lwpb_err_t lwpb_decoder_decode(struct lwpb_decoder *decoder,
