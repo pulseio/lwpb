@@ -162,8 +162,16 @@ void lwpb_encoder_start(struct lwpb_encoder *encoder,
     lwpb_buf_init(&encoder->buf, data, len, 0);
 }
 
-/* just like lwpb_encoder_start, but allocated memory dynamically, starting with 
- * initial length bytes
+/* Just like lwpb_encoder_start, but allocated memory dynamically, starting with 
+ * initial length bytes */
+void lwpb_encoder_start_dynamic_with_length(struct lwpb_encoder *encoder, 
+                                            const struct lwpb_msg_desc *msg_desc,
+                                            size_t initial_len){
+    lwpb_encoder_start_common(encoder, msg_desc);    
+    lwpb_buf_init(&encoder->buf, malloc(initial_len), initial_len, 0);
+}
+
+/* Start encoding with dynamic buffer using a default length
  */
 void lwpb_encoder_start_dynamic(struct lwpb_encoder *encoder, 
                                 const struct lwpb_msg_desc *msg_desc)
@@ -171,13 +179,7 @@ void lwpb_encoder_start_dynamic(struct lwpb_encoder *encoder,
     lwpb_encoder_start_dynamic_with_length(encoder, msg_desc, 128);
 }
     
-/* Dynamic memory with initial length */
-void lwpb_encoder_start_dynamic_with_length(struct lwpb_encoder *encoder, 
-                                            const struct lwpb_msg_desc *msg_desc,
-                                            size_t initial_len){
-    lwpb_encoder_start_common(encoder, msg_desc);    
-    lwpb_buf_init(&encoder->buf, malloc(initial_len), initial_len, 0);
-}
+
 
 /**
  * Finishes encoding a message.
