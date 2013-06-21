@@ -339,7 +339,7 @@ lwpb_err_t lwpb_transport_socket_client_update(lwpb_transport_t transport)
     int high;
     
     if (socket_client->socket == -1)
-        return;
+        return LWPB_ERR_SOCKET_CLOSED;
     
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;

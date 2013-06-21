@@ -1,5 +1,10 @@
 PROGRAMS = \
 test_full_dynamic \
+test_simple \
+test_full \
+test_full_generate \
+test_rpc_direct \
+test_struct_map \
 
 # test_rpc_socket_client \
 # test_rpc_socket_server \

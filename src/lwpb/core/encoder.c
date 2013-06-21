@@ -168,7 +168,7 @@ void lwpb_encoder_start_dynamic_with_length(struct lwpb_encoder *encoder,
                                             const struct lwpb_msg_desc *msg_desc,
                                             size_t initial_len){
     lwpb_encoder_start_common(encoder, msg_desc);    
-    lwpb_buf_init(&encoder->buf, malloc(initial_len), initial_len, 0);
+    lwpb_buf_init(&encoder->buf, malloc(initial_len), initial_len, 1);
 }
 
 /* Start encoding with dynamic buffer using a default length

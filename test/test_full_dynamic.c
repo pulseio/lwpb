@@ -486,13 +486,13 @@ static void test_enum_small(void)
         struct lwpb_encoder encoder;                                        \
         struct lwpb_decoder decoder;                                        \
         struct testing_fields fields;                                       \
-        u8_t buf[128];                                                      \
+        u8_t *buf;                                                      \
         size_t len, used;                                                   \
         lwpb_encoder_init(&encoder);                                        \
-        lwpb_encoder_start(&encoder, foo_TestMessRequiredEnumSmall, buf, sizeof(buf)); \
+        lwpb_encoder_start_dynamic(&encoder, foo_TestMessRequiredEnumSmall); \
         ret = lwpb_encoder_add_enum(&encoder, foo_TestMessRequiredEnumSmall_test, FOO_##value); \
         CHECK_LWPB(ret);                                                    \
-        len = lwpb_encoder_finish(&encoder);                                \
+        buf = lwpb_encoder_finish_dynamic(&encoder, &len);                           \
         CHECK_BUF(buf, len, test_enum_small_##value);                       \
         fields.u.TestMessRequiredEnumSmall.test = FOO_##value;              \
         lwpb_decoder_init(&decoder);                                        \
@@ -501,6 +501,7 @@ static void test_enum_small(void)
         ret = lwpb_decoder_decode(&decoder, foo_TestMessRequiredEnumSmall, buf, len, &used); \
         CHECK_ASSERT(used == sizeof(test_enum_small_##value), "not decoded all bytes"); \
         CHECK_LWPB(ret);                                                    \
+        free(buf); \
     } while (0);
     
     DO_TEST(VALUE);
@@ -517,13 +518,13 @@ static void test_enum_big(void)
         struct lwpb_encoder encoder;                                        \
         struct lwpb_decoder decoder;                                        \
         struct testing_fields fields;                                       \
-        u8_t buf[128];                                                      \
+        u8_t *buf;                                                      \
         size_t len, used;                                                   \
         lwpb_encoder_init(&encoder);                                        \
-        lwpb_encoder_start(&encoder, foo_TestMessRequiredEnum, buf, sizeof(buf)); \
+        lwpb_encoder_start_dynamic(&encoder, foo_TestMessRequiredEnum); \
         ret = lwpb_encoder_add_enum(&encoder, foo_TestMessRequiredEnum_test, FOO_##value); \
         CHECK_LWPB(ret);                                                    \
-        len = lwpb_encoder_finish(&encoder);                                \
+        buf = lwpb_encoder_finish_dynamic(&encoder, &len);                           \
         CHECK_BUF(buf, len, test_enum_big_##value);                         \
         fields.u.TestMessRequiredEnum.test = FOO_##value;                   \
         lwpb_decoder_init(&decoder);                                        \
@@ -532,6 +533,7 @@ static void test_enum_big(void)
         ret = lwpb_decoder_decode(&decoder, foo_TestMessRequiredEnumSmall, buf, len, &used); \
         CHECK_ASSERT(used == sizeof(test_enum_big_##value), "not decoded all bytes"); \
         CHECK_LWPB(ret);                                                    \
+        free(buf); \
     } while (0);
     
     DO_TEST(VALUE0);
@@ -555,13 +557,13 @@ static void test_field_numbers(void)
         struct lwpb_encoder encoder;                                        \
         struct lwpb_decoder decoder;                                        \
         struct testing_fields fields;                                       \
-        u8_t buf[128];                                                      \
+        u8_t *buf;                                                      \
         size_t len, used;                                                   \
         lwpb_encoder_init(&encoder);                                        \
-        lwpb_encoder_start(&encoder, foo_TestFieldNo##field, buf, sizeof(buf)); \
+        lwpb_encoder_start_dynamic(&encoder, foo_TestFieldNo##field); \
         ret = lwpb_encoder_add_string(&encoder, foo_TestFieldNo##field##_test, "tst"); \
         CHECK_LWPB(ret);                                                    \
-        len = lwpb_encoder_finish(&encoder);                                \
+        buf = lwpb_encoder_finish_dynamic(&encoder, &len);                   \
         CHECK_BUF(buf, len, test_field_number_##field);                     \
         fields.u.TestFieldNo.test = "tst";                                  \
         lwpb_decoder_init(&decoder);                                        \
@@ -570,6 +572,7 @@ static void test_field_numbers(void)
         ret = lwpb_decoder_decode(&decoder, foo_TestFieldNo##field, buf, len, &used); \
         CHECK_ASSERT(used == sizeof(test_field_number_##field), "not decoded all bytes"); \
         CHECK_LWPB(ret);                                                    \
+        free(buf); \
     } while (0);
     
     DO_TEST(15);
@@ -590,13 +593,13 @@ static void test_field_numbers(void)
         struct lwpb_encoder encoder;                                        \
         struct lwpb_decoder decoder;                                        \
         struct testing_fields fields;                                       \
-        u8_t buf[256];                                                      \
+        u8_t *buf;                                                      \
         size_t len, used;                                                   \
         lwpb_encoder_init(&encoder);                                        \
-        lwpb_encoder_start(&encoder, foo_TestMessRequired##msg_type, buf, sizeof(buf)); \
+        lwpb_encoder_start_dynamic(&encoder, foo_TestMessRequired##msg_type); \
         ret = lwpb_encoder_add_##lwpb_type(&encoder, foo_TestMessRequired##msg_type##_test, value); \
         CHECK_LWPB(ret);                                                    \
-        len = lwpb_encoder_finish(&encoder);                                \
+        buf = lwpb_encoder_finish_dynamic(&encoder, &len);                   \
         CHECK_BUF(buf, len, vector);                                        \
         fields.u.TestMessRequired##msg_type.test = value;                   \
         lwpb_decoder_init(&decoder);                                        \
@@ -605,6 +608,7 @@ static void test_field_numbers(void)
         ret = lwpb_decoder_decode(&decoder, foo_TestMessRequired##msg_type, buf, len, &used); \
         CHECK_ASSERT(used == sizeof(vector), "not decoded all bytes");      \
         CHECK_LWPB(ret);                                                    \
+        free(buf); \
     } while (0);
 
 #define DO_TEST_REQUIRED_BYTES(msg_type, lwpb_type, value, value_len, vector) \
@@ -613,13 +617,13 @@ static void test_field_numbers(void)
         struct lwpb_encoder encoder;                                        \
         struct lwpb_decoder decoder;                                        \
         struct testing_fields fields;                                       \
-        u8_t buf[256];                                                      \
+        u8_t *buf;                                                      \
         size_t len, used;                                                   \
         lwpb_encoder_init(&encoder);                                        \
-        lwpb_encoder_start(&encoder, foo_TestMessRequired##msg_type, buf, sizeof(buf)); \
+        lwpb_encoder_start_dynamic(&encoder, foo_TestMessRequired##msg_type); \
         ret = lwpb_encoder_add_##lwpb_type(&encoder, foo_TestMessRequired##msg_type##_test, (u8_t *) value, value_len); \
         CHECK_LWPB(ret);                                                    \
-        len = lwpb_encoder_finish(&encoder);                                \
+        buf = lwpb_encoder_finish_dynamic(&encoder, &len);                   \
         CHECK_BUF(buf, len, vector);                                        \
         fields.u.TestMessRequired##msg_type.test = (u8_t *) value;          \
         fields.u.TestMessRequired##msg_type.len = value_len;                \
@@ -629,6 +633,7 @@ static void test_field_numbers(void)
         ret = lwpb_decoder_decode(&decoder, foo_TestMessRequired##msg_type, buf, len, &used); \
         CHECK_ASSERT(used == sizeof(vector), "not decoded all bytes");      \
         CHECK_LWPB(ret);                                                    \
+        free(buf); \
     } while (0);
 
 
@@ -801,16 +806,17 @@ static void test_empty_optional(void)
     lwpb_err_t ret;
     struct lwpb_encoder encoder;
     struct lwpb_decoder decoder;
-    u8_t buf[256];
+    u8_t *buf;
     size_t len, used;
     lwpb_encoder_init(&encoder);
-    lwpb_encoder_start(&encoder, foo_TestMessOptional, buf, sizeof(buf));
-    len = lwpb_encoder_finish(&encoder);
+    lwpb_encoder_start_dynamic(&encoder, foo_TestMessOptional);
+    buf = lwpb_encoder_finish_dynamic(&encoder, &len);
     CHECK_ASSERT(len == 0, "length must be null");
     lwpb_decoder_init(&decoder);
     ret = lwpb_decoder_decode(&decoder, foo_TestMessOptional, buf, len, &used);
     CHECK_ASSERT(used == 0, "not decoded all bytes");
     CHECK_LWPB(ret);
+    free(buf);
 }
 
 #define DO_TEST_OPTIONAL(lwpb_type, field, value, vector)                   \
@@ -819,13 +825,13 @@ static void test_empty_optional(void)
         struct lwpb_encoder encoder;                                        \
         struct lwpb_decoder decoder;                                        \
         struct testing_fields fields;                                       \
-        u8_t buf[256];                                                      \
+        u8_t *buf;                                                      \
         size_t len, used;                                                   \
         lwpb_encoder_init(&encoder);                                        \
-        lwpb_encoder_start(&encoder, foo_TestMessOptional, buf, sizeof(buf)); \
+        lwpb_encoder_start_dynamic(&encoder, foo_TestMessOptional); \
         ret = lwpb_encoder_add_##lwpb_type(&encoder, foo_TestMessOptional_test_##field, value); \
         CHECK_LWPB(ret);                                                    \
-        len = lwpb_encoder_finish(&encoder);                                \
+        buf = lwpb_encoder_finish_dynamic(&encoder, &len);                   \
         CHECK_BUF(buf, len, vector);                                        \
         fields.u.TestMessOptional.test_##field = value;                     \
         lwpb_decoder_init(&decoder);                                        \
@@ -834,6 +840,7 @@ static void test_empty_optional(void)
         ret = lwpb_decoder_decode(&decoder, foo_TestMessOptional, buf, len, &used); \
         CHECK_ASSERT(used == sizeof(vector), "not decoded all bytes");      \
         CHECK_LWPB(ret);                                                    \
+        free(buf); \
     } while (0);
 
 #define DO_TEST_OPTIONAL_BYTES(lwpb_type, field, value, value_len, vector)  \
@@ -842,13 +849,13 @@ static void test_empty_optional(void)
         struct lwpb_encoder encoder;                                        \
         struct lwpb_decoder decoder;                                        \
         struct testing_fields fields;                                       \
-        u8_t buf[256];                                                      \
+        u8_t *buf;                                                      \
         size_t len, used;                                                   \
         lwpb_encoder_init(&encoder);                                        \
-        lwpb_encoder_start(&encoder, foo_TestMessOptional, buf, sizeof(buf)); \
+        lwpb_encoder_start_dynamic(&encoder, foo_TestMessOptional); \
         ret = lwpb_encoder_add_##lwpb_type(&encoder, foo_TestMessOptional_test_##field, (u8_t *) value, value_len); \
         CHECK_LWPB(ret);                                                    \
-        len = lwpb_encoder_finish(&encoder);                                \
+        buf = lwpb_encoder_finish_dynamic(&encoder, &len);                           \
         CHECK_BUF(buf, len, vector);                                        \
         fields.u.TestMessOptional.test_##field = (u8_t *) value;            \
         fields.u.TestMessOptional.test_##field##_len = value_len;           \
@@ -858,6 +865,7 @@ static void test_empty_optional(void)
         ret = lwpb_decoder_decode(&decoder, foo_TestMessOptional, buf, len, &used); \
         CHECK_ASSERT(used == sizeof(vector), "not decoded all bytes");      \
         CHECK_LWPB(ret);                                                    \
+        free(buf); \
     } while (0);
 
 
@@ -1006,16 +1014,17 @@ static void test_empty_repeated(void)
     lwpb_err_t ret;
     struct lwpb_encoder encoder;
     struct lwpb_decoder decoder;
-    u8_t buf[256];
+    u8_t *buf;
     size_t len, used;
     lwpb_encoder_init(&encoder);
-    lwpb_encoder_start(&encoder, foo_TestMess, buf, sizeof(buf));
-    len = lwpb_encoder_finish(&encoder);
+    lwpb_encoder_start_dynamic(&encoder, foo_TestMess);
+    buf = lwpb_encoder_finish_dynamic(&encoder, &len);
     CHECK_ASSERT(len == 0, "length must be null");
     lwpb_decoder_init(&decoder);
     ret = lwpb_decoder_decode(&decoder, foo_TestMess, buf, len, &used);
     CHECK_ASSERT(used == 0, "not decoded all bytes");
     CHECK_LWPB(ret);
+    free(buf);
 }
 
 #define DO_TEST_REPEATED(lwpb_type, field, array, vector)                   \
@@ -1024,15 +1033,15 @@ static void test_empty_repeated(void)
         struct lwpb_encoder encoder;                                        \
         struct lwpb_decoder decoder;                                        \
         struct testing_fields fields;                                       \
-        u8_t buf[512];                                                      \
+        u8_t *buf;                                                      \
         size_t len, used;                                                   \
         int i;                                                              \
         lwpb_encoder_init(&encoder);                                        \
-        lwpb_encoder_start(&encoder, foo_TestMess, buf, sizeof(buf));       \
+        lwpb_encoder_start_dynamic(&encoder, foo_TestMess);       \
         for (i = 0; i < ARRAY_SIZE(array); i++)                             \
             ret = lwpb_encoder_add_##lwpb_type(&encoder, foo_TestMess_test_##field, array[i]); \
         CHECK_LWPB(ret);                                                    \
-        len = lwpb_encoder_finish(&encoder);                                \
+        buf = lwpb_encoder_finish_dynamic(&encoder, &len);                           \
         CHECK_BUF(buf, len, vector);                                        \
         fields.u.TestMess.test_##field = array;                             \
         lwpb_decoder_init(&decoder);                                        \
@@ -1173,11 +1182,11 @@ static void test_empty_packed_repeated(void)
     lwpb_err_t ret;
     struct lwpb_encoder encoder;
     struct lwpb_decoder decoder;
-    u8_t buf[256];
+    u8_t *buf;
     size_t len, used;
     lwpb_encoder_init(&encoder);
-    lwpb_encoder_start(&encoder, foo_TestMessPacked, buf, sizeof(buf));
-    len = lwpb_encoder_finish(&encoder);
+    lwpb_encoder_start_dynamic(&encoder, foo_TestMessPacked);
+    buf = lwpb_encoder_finish_dynamic(&encoder, &len);
     CHECK_ASSERT(len == 0, "length must be null");
     lwpb_decoder_init(&decoder);
     ret = lwpb_decoder_decode(&decoder, foo_TestMessPacked, buf, len, &used);
@@ -1191,11 +1200,11 @@ static void test_empty_packed_repeated(void)
         struct lwpb_encoder encoder;                                        \
         struct lwpb_decoder decoder;                                        \
         struct testing_fields fields;                                       \
-        u8_t buf[512];                                                      \
+        u8_t *buf;                                                       \
         size_t len, used;                                                   \
         int i;                                                              \
         lwpb_encoder_init(&encoder);                                        \
-        lwpb_encoder_start(&encoder, foo_TestMessPacked, buf, sizeof(buf)); \
+        lwpb_encoder_start_dynamic(&encoder, foo_TestMessPacked); \
         ret = lwpb_encoder_packed_repeated_start(&encoder, foo_TestMessPacked_test_##field); \
         CHECK_LWPB(ret);                                                    \
         for (i = 0; i < ARRAY_SIZE(array); i++)                             \
@@ -1203,7 +1212,7 @@ static void test_empty_packed_repeated(void)
         CHECK_LWPB(ret);                                                    \
         ret = lwpb_encoder_packed_repeated_end(&encoder);                   \
         CHECK_LWPB(ret);                                                    \
-        len = lwpb_encoder_finish(&encoder);                                \
+        buf = lwpb_encoder_finish_dynamic(&encoder, &len);                   \
         CHECK_BUF(buf, len, vector);                                        \
         fields.u.TestMessPacked.test_##field = array;                       \
         lwpb_decoder_init(&decoder);                                        \

@@ -68,6 +68,7 @@ typedef enum {
     LWPB_ERR_MEM,               /**< Memory allocation failed */
     // Socket service error codes
     LWPB_ERR_NET_INIT,          /**< Network initialization failed */
+    LWPB_ERR_SOCKET_CLOSED,     /* socket was closed */
 } lwpb_err_t;
 
 /* Field labels */
