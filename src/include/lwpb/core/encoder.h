@@ -70,6 +70,12 @@ size_t lwpb_encoder_finish(struct lwpb_encoder *encoder);
 
 u8_t *lwpb_encoder_finish_dynamic(struct lwpb_encoder *encoder, size_t *size);
 
+/* IMPORTANT!
+ * Does some cleanup of internal buffer if encoding is aborted before completion.
+ * If you don't call lwpb_encoder_finish_dynamic and take ownership of the pointer, this must be called.
+*/
+void lwpb_encoder_dynamic_error_cleanup(struct lwpb_encoder *encoder)
+
 lwpb_err_t lwpb_encoder_nested_start(struct lwpb_encoder *encoder,
                                      const struct lwpb_field_desc *field_desc);
 

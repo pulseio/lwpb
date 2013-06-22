@@ -203,6 +203,12 @@ u8_t *lwpb_encoder_finish_dynamic(struct lwpb_encoder *encoder, size_t *size){
     return encoder->buf.base;
 }
 
+/*
+ * Does some cleanup of internal buffer if encoding is aborted before completion.
+*/
+void lwpb_encoder_dynamic_error_cleanup(struct lwpb_encoder *encoder) {
+    if(encoder->buf.base) free(encoder->buf.base);
+}
 
 /**
  * Starts encoding a nested message.
