@@ -640,6 +640,8 @@ lwpb_err_t lwpb_encoder_add_string(struct lwpb_encoder *encoder,
                                    const struct lwpb_field_desc *field_desc,
                                    char *str)
 {
+    if(!str) return LWPB_ERR_INVALID_FIELD;
+    
     union lwpb_value value;
     value.string.str = str;
     value.string.len = LWPB_STRLEN(str);
@@ -658,6 +660,8 @@ lwpb_err_t lwpb_encoder_add_bytes(struct lwpb_encoder *encoder,
                                   const struct lwpb_field_desc *field_desc,
                                   u8_t *data, size_t len)
 {
+    if(!data) return LWPB_ERR_INVALID_FIELD;
+    
     union lwpb_value value;
     value.string.str = (char *) data;
     value.string.len = len;

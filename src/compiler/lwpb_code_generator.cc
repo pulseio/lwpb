@@ -134,9 +134,10 @@ string LWPBCodeGenerator::FileDescriptorIncludeGuard(
 // Returns the name of the message array.
 string LWPBCodeGenerator::FileDescriptorMessageArray(
     const FileDescriptor& descriptor) const {
-  string name = descriptor.package();    
-  name = StringReplace(name, ".", "_", true);
-  name = "lwpb_messages_" + name;
+  string package = StringReplace(descriptor.package(), ".", "_", true);
+  string name = StripProto(descriptor.name());
+  LowerString(&name);
+  name = "lwpb_messages_" + package + "_" + name;
   LowerString(&name);
   return name;
 }
@@ -144,9 +145,10 @@ string LWPBCodeGenerator::FileDescriptorMessageArray(
 // Returns the name of the service array.
 string LWPBCodeGenerator::FileDescriptorServiceArray(
     const FileDescriptor& descriptor) const {
-  string name = descriptor.package();    
-  name = StringReplace(name, ".", "_", true);
-  name = "lwpb_services_" + name;
+  string package = StringReplace(descriptor.package(), ".", "_", true);
+  string name = StripProto(descriptor.name());
+  LowerString(&name);
+  name = "lwpb_services_" + package + "_" + name;
   LowerString(&name);
   return name;
 }
