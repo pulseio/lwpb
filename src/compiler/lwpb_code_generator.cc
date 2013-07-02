@@ -388,8 +388,9 @@ void LWPBCodeGenerator::PrintEnumDescriptor(
 
   for (int i = 0; i < enum_descriptor.value_count(); ++i) {
     const EnumValueDescriptor &value_descriptor = *enum_descriptor.value(i);
-    string name = value_descriptor.full_name();
+    string name = enum_descriptor.full_name() + "." + value_descriptor.name();
     name = StringReplace(name, ".", "_", true);
+    
     UpperString(&name);
     string number = SimpleItoa(value_descriptor.number());
     h_printer_->Print("#define $name$ $number$\n",
