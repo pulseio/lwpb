@@ -488,6 +488,8 @@ decode_nested:
                 value.bytes.data = wire_value.string.data;
                 break;
             case LWPB_MESSAGE:
+                 value.message.len = wire_value.string.len;
+                 value.message.data = wire_value.string.data;
             default:
 
                 // If the user specified 
@@ -496,7 +498,7 @@ decode_nested:
                 }
                 else {
                     if (decoder->field_handler)
-                        decoder->field_handler(decoder, msg_desc, field_desc, NULL, decoder->arg);                                
+                        decoder->field_handler(decoder, msg_desc, field_desc, &value, decoder->arg);
 
                     // Create new stack frame
                     new_frame = push_stack_frame(decoder);
