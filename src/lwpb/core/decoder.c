@@ -336,7 +336,7 @@ lwpb_err_t lwpb_decoder_decode(struct lwpb_decoder *decoder,
     lwpb_err_t ret;
     int i;
     u64_t key;
-    int number;
+    u64_t number;
     const struct lwpb_field_desc *field_desc = NULL;
     enum wire_type wire_type;
     union wire_value wire_value;
@@ -366,7 +366,7 @@ decode_nested:
             
             if (decoder->packed) {
                 wire_type = field_wire_type(field_desc);
-                if(wire_type == LWPB_UNKNOWN_FIELD) return LWPB_ERR_INVALID_FIELD;
+                if((int)(wire_type) == LWPB_UNKNOWN_FIELD) return LWPB_ERR_INVALID_FIELD;
             } else {
                 // Decode the field key
                 ret = lwpb_decode_varint(&frame->buf, &key);
@@ -442,20 +442,20 @@ decode_nested:
                 LWPB_MEMCPY(&value.float_, &wire_value.int32, sizeof(float));
                 break;
             case LWPB_INT32:
-                value.int32 = wire_value.varint;
+                value.int32 = (s32_t)(wire_value.varint);
                 break;
             case LWPB_INT64:
                 value.int64 = wire_value.varint;
                 break;
             case LWPB_UINT32:
-                value.uint32 = wire_value.varint;
+                value.uint32 = (u32_t)(wire_value.varint);
                 break;
             case LWPB_UINT64:
                 value.uint64 = wire_value.varint;
                 break;
             case LWPB_SINT32:
                 // Zig-zag encoding
-                value.int32 = (wire_value.varint >> 1) ^ -((s32_t) (wire_value.varint & 1));
+                value.int32 = ((s32_t)(wire_value.varint >> 1)) ^ -((s32_t) (wire_value.varint & 1));
                 break;
             case LWPB_SINT64:
                 // Zig-zag encoding
@@ -474,10 +474,10 @@ decode_nested:
                 value.int64 = wire_value.int64;
                 break;
             case LWPB_BOOL:
-                value.boolean = wire_value.varint;
+                value.boolean = (lwpb_bool_t)(wire_value.varint);
                 break;
             case LWPB_ENUM:
-                value.enum_ = wire_value.varint;
+                value.enum_ = (lwpb_enum_t)(wire_value.varint);
                 break;
             case LWPB_STRING:
                 value.string.len = wire_value.string.len;
